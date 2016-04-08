@@ -10,10 +10,10 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-import com.almightyalpaca.discord.bot.system.command.AbstractCommand;
-import com.almightyalpaca.discord.bot.system.command.annotation.Command;
+import com.almightyalpaca.discord.bot.system.command.Command;
+import com.almightyalpaca.discord.bot.system.command.CommandHandler;
 import com.almightyalpaca.discord.bot.system.command.arguments.special.Rest;
-import com.almightyalpaca.discord.bot.system.events.CommandEvent;
+import com.almightyalpaca.discord.bot.system.events.commands.CommandEvent;
 import com.almightyalpaca.discord.bot.system.exception.PluginLoadingException;
 import com.almightyalpaca.discord.bot.system.exception.PluginUnloadingException;
 import com.almightyalpaca.discord.bot.system.plugins.Plugin;
@@ -25,13 +25,13 @@ import net.dv8tion.jda.MessageBuilder;
 
 public class LanguagePlugin extends Plugin {
 
-	class LanguageCommand extends AbstractCommand {
+	class LanguageCommand extends Command {
 
 		public LanguageCommand() {
 			super("language", "Tells you the language", "language [text]");
 		}
 
-		@Command(dm = true, guild = true, async = true)
+		@CommandHandler(dm = true, guild = true, async = true)
 		public void onCommand(final CommandEvent event, final Rest text) {
 			final MessageBuilder builder = new MessageBuilder();
 
@@ -53,12 +53,11 @@ public class LanguagePlugin extends Plugin {
 
 			event.sendMessage(builder.build());
 		}
-
 	}
 
-	private static final PluginInfo	INFO	= new PluginInfo("com.almightyalpaca.discord.bot.plugin.language", "1.0.0", "Almighty Alpaca", "Language Plugin", "Detects the language of a text.");
+	private static final PluginInfo INFO = new PluginInfo("com.almightyalpaca.discord.bot.plugin.language", "1.0.0", "Almighty Alpaca", "Language Plugin", "Detects the language of a text.");
 
-	private Map<String, String>		languages;
+	private Map<String, String> languages;
 
 	public LanguagePlugin() {
 		super(LanguagePlugin.INFO);
@@ -71,9 +70,11 @@ public class LanguagePlugin extends Plugin {
 	@Override
 	public void load() throws PluginLoadingException {
 
-		this.setupLanguageTable();
+		if ((DetectLanguage.apiKey = this.getSharedConfig("detectlanguage").getString("key", "Your Key")) == "Your Key") {
+			throw new PluginLoadingException("Pls add your detectlanguage api key to the config");
+		}
 
-		DetectLanguage.apiKey = this.getBridge().getSecureConfig("detectlanguage").getString("API_KEY");
+		this.setupLanguageTable();
 
 		this.registerCommand(new LanguageCommand());
 	}
